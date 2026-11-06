@@ -17,4 +17,16 @@ public interface IReservaRepository extends JpaRepository<Reserva, Integer> {
     @Query("SELECT a FROM Actividad a " +
             "WHERE (SELECT COUNT(r) FROM Reserva r WHERE r.actividad = a AND r.fechaReserva = :fecha) < a.aforoMaximo")
     List<Actividad> findActividadesConPlazasPorFecha(@Param("fecha") LocalDate fecha);
+
+    @Query("""
+    SELECT r
+    FROM Reserva r
+    JOIN FETCH r.actividad a
+    LEFT JOIN FETCH a.monitor
+    WHERE r.socio.id = :socioId
+    ORDER BY a.dia ASC, a.hora ASC
+""")
+    List<Reserva> findReservasBySocioId(
+            @Param("socioId") Integer socioId
+    );
 }

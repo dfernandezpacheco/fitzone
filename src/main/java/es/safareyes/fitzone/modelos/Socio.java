@@ -50,8 +50,8 @@ public class Socio {
     @EqualsAndHashCode.Exclude
     private List<Reserva> reservas;
 
-    @OneToOne
-    @JoinColumn(name = "id_usuario")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", nullable = true)
     private Usuario usuario;
 
     @ManyToOne

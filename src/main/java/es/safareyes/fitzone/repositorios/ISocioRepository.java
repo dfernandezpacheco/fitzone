@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,4 +22,15 @@ public interface ISocioRepository extends JpaRepository<Socio, Integer> {
 
     Page<Socio> findAll(Pageable pageable);
 
+    boolean existsByDni(String dni);
+
+    boolean existsByEmail(String email);
+
+
+    @Query("SELECT s FROM Socio s " +
+            "LEFT JOIN FETCH s.plan " +
+            "WHERE s.usuario.usuario = :usuario")
+    Optional<Socio> findByNombreUsuario(
+            @Param("usuario") String usuario
+    );
 }
