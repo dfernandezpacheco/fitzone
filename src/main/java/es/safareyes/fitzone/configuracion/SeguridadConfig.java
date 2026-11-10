@@ -20,6 +20,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -82,28 +84,71 @@ public class SeguridadConfig {
                         )
                 )
 
-                // Rutas públicas y privadas
                 .authorizeHttpRequests(auth -> auth
 
-                        // El login es público
+                        // LOGIN Y REGISTRO PÚBLICOS
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/auth/login"
+                                "/auth/login",
+                                "/auth/registro",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/registro"
                         ).permitAll()
 
-                        // Permitimos peticiones OPTIONS
+
+                        // CONSULTA PÚBLICA DE PLANES
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/planes",
+                                "/api/v1/planes"
+                        ).permitAll()
+
+
+                        // PETICIONES OPTIONS
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll()
 
-                        // El resto necesita autenticación
+
+                        // ZONA PERSONAL DEL SOCIO
+                        .requestMatchers(
+                                "/socios/mi-perfil",
+                                "/socios/mi-perfil/**",
+                                "/socios/mi-resumen"
+                        ).hasRole("SOCIO")
+
+
+                        // ADMINISTRACIÓN
+                        .requestMatchers(
+                                "/admin/**"
+                        ).hasRole("ADMIN")
+
+
+                        // RECEPCIÓN
+                        .requestMatchers(
+                                "/recepcion/**"
+                        ).hasAnyRole("ADMIN", "RECEPCION")
+
+
+                        // GESTIÓN DE SOCIOS
+                        .requestMatchers(
+                                "/socios/**"
+                        ).hasAnyRole("ADMIN", "RECEPCION")
+
+
+                        // RESTO DE RUTAS AUTENTICADAS
                         .anyRequest().authenticated()
+
                 )
 
                 // Validación automática de JWT
                 .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(Customizer.withDefaults())
+                        oauth2.jwt(jwt ->
+                                jwt.jwtAuthenticationConverter(
+                                        jwtAuthenticationConverter()
+                                )
+                        )
                 )
 
                 .build();
@@ -159,5 +204,42 @@ public class SeguridadConfig {
         }
 
         return new SecretKeySpec(keyBytes, "HmacSHA256");
+    }
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+
+        JwtAuthenticationConverter converter =
+                new JwtAuthenticationConverter();
+
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+
+            Integer rol = jwt.getClaim("rol");
+
+            if (rol == null) {
+                return List.of();
+            }
+
+            String autoridad = switch (rol) {
+
+                case 1 -> "ROLE_ADMIN";
+
+                case 2 -> "ROLE_RECEPCION";
+
+                case 3 -> "ROLE_SOCIO";
+
+                default -> null;
+            };
+
+            if (autoridad == null) {
+                return List.of();
+            }
+
+            return List.of(
+                    new SimpleGrantedAuthority(autoridad)
+            );
+
+        });
+
+        return converter;
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import es.safareyes.fitzone.dto.MiPerfilSocioDto;
+import es.safareyes.fitzone.dto.ResumenSocioDto;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -63,5 +64,10 @@ public class SocioController {
         return ResponseEntity.ok(
                 socioService.obtenerMiPerfil(nombreUsuario)
         );
+    }
+
+    @GetMapping("/mi-resumen")
+    public ResponseEntity<ResumenSocioDto> obtenerMiResumen(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(socioService.obtenerResumen(jwt.getSubject()));
     }
 }

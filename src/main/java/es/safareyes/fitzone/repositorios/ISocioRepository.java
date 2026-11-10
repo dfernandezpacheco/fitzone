@@ -26,6 +26,8 @@ public interface ISocioRepository extends JpaRepository<Socio, Integer> {
 
     boolean existsByEmail(String email);
 
+    boolean existsByEmailIgnoreCase(String email);
+
 
     @Query("SELECT s FROM Socio s " +
             "LEFT JOIN FETCH s.plan " +
@@ -33,4 +35,8 @@ public interface ISocioRepository extends JpaRepository<Socio, Integer> {
     Optional<Socio> findByNombreUsuario(
             @Param("usuario") String usuario
     );
+
+    long countByActivoTrue();
+
+    long countByActivoFalse();
 }
