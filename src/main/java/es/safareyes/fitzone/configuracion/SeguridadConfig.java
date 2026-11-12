@@ -213,11 +213,8 @@ public class SeguridadConfig {
 
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
 
-            Integer rol = jwt.getClaim("rol");
-
-            if (rol == null) {
-                return List.of();
-            }
+            Number rolClaim = (Number) jwt.getClaims().get("rol");
+            int rol = rolClaim.intValue();
 
             String autoridad = switch (rol) {
 

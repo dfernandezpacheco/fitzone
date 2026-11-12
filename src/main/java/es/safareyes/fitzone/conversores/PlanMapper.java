@@ -8,17 +8,20 @@ import java.util.List;
 
 @Component
 public class PlanMapper {
-
     public PlanResponseDto toDto(Plan plan) {
-        if (plan == null) return null;
+        if (plan == null) {
+            return null;
+        }
         return new PlanResponseDto(
                 plan.getId(),
                 plan.getNombre(),
-                plan.getPrecioMesual()
+                plan.getPrecioMesual(),
+                plan.getTipo()
         );
     }
-
     public List<PlanResponseDto> toDtoList(List<Plan> planes) {
-        return planes.stream().map(this::toDto).toList();
+        return planes.stream()
+                .map(this::toDto)
+                .toList();
     }
 }

@@ -22,26 +22,37 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminResumenDto obtenerResumen() {
+
         YearMonth mesActual = YearMonth.now();
+
         LocalDateTime inicio = mesActual
                 .atDay(1)
                 .atStartOfDay();
+
         LocalDateTime fin = mesActual
                 .plusMonths(1)
                 .atDay(1)
                 .atStartOfDay();
+
         BigDecimal ingresosMes =
                 cuotaRepository.calcularIngresosEntreFechas(inicio, fin);
 
         if (ingresosMes == null) {
             ingresosMes = BigDecimal.ZERO;
         }
+
+        long cuotasPendientes =
+                cuotaRepository.countByEstadoIgnoreCase("PENDIENTE");
+
         return new AdminResumenDto(
                 socioRepository.count(),
                 socioRepository.countByActivoTrue(),
                 socioRepository.countByActivoFalse(),
                 planRepository.count(),
-                ingresosMes
+                ingresosMes,
+                cuotasPendientes,
+                socioRepository.obtenerDistribucionSociosPorPlan()
         );
     }
+
 }

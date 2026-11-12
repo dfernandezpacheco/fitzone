@@ -13,4 +13,6 @@ public interface IPlanRepository extends JpaRepository<Plan, Integer> {
 
     List<Plan> findByTipo(TipoPlan tipo);
     List<Plan> findAll ();
+    boolean existsByNombreIgnoreCase(String nombre);
+    boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Integer id);
 }

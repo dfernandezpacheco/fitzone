@@ -11,6 +11,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import es.safareyes.fitzone.dto.CuotaAdminDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,4 +48,23 @@ public interface ICuotaRepository extends JpaRepository<Cuota, Integer> {
             @Param("fin") LocalDateTime fin
     );
 
+    long countByEstadoIgnoreCase(String estado);
+
+    @Query(
+            value = """
+        SELECT new es.safareyes.fitzone.dto.CuotaAdminDto(
+            c.id,c.mes,c.anio,c.importe,c.estado,c.fechaPago,s.id,s.nombre,s.apellidos,s.dni,p.nombre
+        )
+        FROM Cuota c
+        LEFT JOIN c.socio s
+        LEFT JOIN s.plan p
+        ORDER BY c.anio DESC, c.mes DESC, c.id DESC
+        """,
+            countQuery = "SELECT COUNT(c) FROM Cuota c"
+    )
+    Page<CuotaAdminDto> listarCuotasAdmin(Pageable pageable);
+
+    long countByAnio(Integer anio);
+
+    long countByAnioAndEstadoIgnoreCase(Integer anio, String estado);
 }
