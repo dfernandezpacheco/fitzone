@@ -6,12 +6,9 @@ import es.safareyes.fitzone.servicios.InformeAdminService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.time.Year;
 
 @RestController
 @RequestMapping("/admin/informes")
@@ -24,12 +21,12 @@ public class AdminInformeController {
     public ResponseEntity<InformeAdminDto> obtenerInforme(
             @RequestParam(required = false) Integer anio) {
 
-        int anioConsulta = (anio != null)
+        int anioSolicitado = anio != null
                 ? anio
-                : LocalDate.now().getYear();
+                : Year.now().getValue();
 
         return ResponseEntity.ok(
-                informeAdminService.generarInforme(anioConsulta)
+                informeAdminService.generarInforme(anioSolicitado)
         );
     }
 }

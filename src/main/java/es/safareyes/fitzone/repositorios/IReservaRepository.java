@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Query;
+import java.time.LocalDateTime;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,5 +31,16 @@ public interface IReservaRepository extends JpaRepository<Reserva, Integer> {
 """)
     List<Reserva> findReservasBySocioId(
             @Param("socioId") Integer socioId
+    );
+
+    @Query("""
+    SELECT COUNT(r)
+    FROM Reserva r
+    WHERE r.actividad.dia >= :inicio
+      AND r.actividad.dia < :fin
+    """)
+    long contarReservasHoy(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
     );
 }

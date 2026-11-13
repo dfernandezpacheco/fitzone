@@ -10,5 +10,7 @@ public record InformeAdminDto(
         long cuotasPendientes,
         long cuotasCanceladas,
         long totalCuotas,
-        List<IngresoMensualDto> ingresosMensuales
+        List<IngresoMensualDto> ingresosMensuales,
+        long totalAltasAnio,
+        List<AltaMensualDto> altasMensuales
 ) {}

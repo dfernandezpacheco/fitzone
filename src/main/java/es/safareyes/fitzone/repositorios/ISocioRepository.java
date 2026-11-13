@@ -50,4 +50,10 @@ public interface ISocioRepository extends JpaRepository<Socio, Integer> {
     ORDER BY p.nombre
     """)
     List<DistribucionPlanDto> obtenerDistribucionSociosPorPlan();
+
+    long countByFechaAltaGreaterThanEqualAndFechaAltaLessThan(
+            LocalDate inicio,
+            LocalDate fin
+    );
+    List<Socio> findTop5ByOrderByFechaAltaDesc();
 }
