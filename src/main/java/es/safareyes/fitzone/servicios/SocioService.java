@@ -19,14 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 import es.safareyes.fitzone.dto.MiPerfilSocioDto;
 import es.safareyes.fitzone.dto.ActividadResumenDto;
 import es.safareyes.fitzone.dto.ResumenSocioDto;
-import es.safareyes.fitzone.modelos.Socio;
 import es.safareyes.fitzone.dto.ReservaSocioDto;
 import es.safareyes.fitzone.modelos.Reserva;
 import es.safareyes.fitzone.modelos.Actividad;
 import es.safareyes.fitzone.modelos.Cuota;
 import es.safareyes.fitzone.modelos.Monitor;
-import es.safareyes.fitzone.repositorios.IReservaRepository;
 import es.safareyes.fitzone.repositorios.ICuotaRepository;
+import es.safareyes.fitzone.repositorios.IActividadRepository;
+import es.safareyes.fitzone.dto.ActividadDisponibleSocioDto;
 
 import java.util.List;
 import java.time.LocalDateTime;
@@ -44,6 +44,7 @@ public class SocioService {
     private final SocioMapper socioMapper;
     private final IReservaRepository reservaRepository;
     private final ICuotaRepository cuotaRepository;
+    private final IActividadRepository actividadRepository;
 
     @Transactional
     public SocioResponseDto crearSocio(CrearSocioDto dto) {
@@ -60,24 +61,20 @@ public class SocioService {
         Socio socio = socioMapper.toEntity(dto, plan);
         return socioMapper.toDto(socioRepository.save(socio));
     }
-
     @Transactional(readOnly = true)
     public Page<SocioResponseDto> obtenerTodosPaginados(Pageable pageable) {
         return socioRepository.findAll(pageable).map(socioMapper::toDto);
     }
-
     @Transactional(readOnly = true)
     public SocioResponseDto obtenerPorId(Integer id) {
         Socio socio = socioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado con ID: " + id));
         return socioMapper.toDto(socio);
     }
-
     @Transactional
     public SocioResponseDto actualizarSocio(Integer id, ActualizarSocioDto dto) {
         Socio socio = socioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado con ID: " + id));
-
         Plan plan = planRepository.findById(dto.planId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Plan no encontrado con ID: " + dto.planId()));
 
@@ -90,7 +87,6 @@ public class SocioService {
 
         return socioMapper.toDto(socioRepository.save(socio));
     }
-
     @Transactional
     public SocioResponseDto cambiarEstado(Integer id, Boolean activo) {
         Socio socio = socioRepository.findById(id)
@@ -98,7 +94,6 @@ public class SocioService {
         socio.setActivo(activo);
         return socioMapper.toDto(socioRepository.save(socio));
     }
-
     @Transactional(readOnly = true)
     public MiPerfilSocioDto obtenerMiPerfil(String nombreUsuario) {
         Socio socio = socioRepository
@@ -127,7 +122,7 @@ public class SocioService {
     @Transactional(readOnly = true)
     public ResumenSocioDto obtenerResumen(String nombreUsuario) {
 
-        // 1. Buscar al socio autenticado
+        // Buscar al socio
         Socio socio = socioRepository.findByNombreUsuario(nombreUsuario)
                 .orElseThrow(() ->
                         new RecursoNoEncontradoException(
@@ -135,22 +130,21 @@ public class SocioService {
                         )
                 );
 
-        // 2. Obtener fecha y mes actuales
+        // Obtener fecha y mes actuales
         LocalDateTime ahora = LocalDateTime.now();
 
         YearMonth mesActual = YearMonth.now();
 
-        // 3. Recuperar todas las reservas del socio
+        // Recuperar todas las reservas del socio
         List<Reserva> reservas = reservaRepository
                 .findReservasBySocioId(socio.getId());
 
-        // 4. Filtrar las reservas activas
-        // Consideramos true = reserva vigente
+        //  Filtrar las reservas activas
         List<Reserva> reservasActivas = reservas.stream()
                 .filter(reserva -> Boolean.TRUE.equals(reserva.getEstado()))
                 .toList();
 
-        // 5. Obtener reservas futuras
+        // Obtener reservas futuras
         List<Reserva> futuras = reservasActivas.stream()
 
                 .filter(reserva ->
@@ -174,7 +168,7 @@ public class SocioService {
                 .toList();
 
 
-        // 6. Contar las clases del mes actual
+        //  Contar las clases del mes actual
         int clasesEsteMes = (int) reservasActivas.stream()
 
                 .filter(reserva ->
@@ -193,7 +187,7 @@ public class SocioService {
                 .count();
 
 
-        // 7. Obtener las actividades recientes
+        // Obtener las actividades recientes
         List<ActividadResumenDto> recientes = reservasActivas.stream()
 
                 .filter(reserva ->
@@ -222,7 +216,7 @@ public class SocioService {
                 .toList();
 
 
-        // 8. Consultar cuota del mes actual
+        // Consultar cuota del mes actual
         Optional<Cuota> cuota =
                 cuotaRepository.findFirstBySocioIdAndMesAndAnioOrderByIdDesc(
                         socio.getId(),
@@ -231,7 +225,7 @@ public class SocioService {
                 );
 
 
-        // 9. Comprobar estado de la cuota
+        // Comprobar estado de la cuota
         String estadoCuota = cuota
                 .map(c ->
                         esCuotaPagada(c.getEstado())
@@ -241,7 +235,7 @@ public class SocioService {
                 .orElse("Sin cuota generada");
 
 
-        // 10. Construir respuesta
+        // Construir respuesta
         return new ResumenSocioDto(
 
                 clasesEsteMes,
@@ -273,9 +267,10 @@ public class SocioService {
         return "PAGADA".equalsIgnoreCase(estado) || "PAGADO".equalsIgnoreCase(estado);
     }
 
+
+
     @Transactional(readOnly = true)
     public List<ReservaSocioDto> obtenerMisReservas(String nombreUsuario) {
-
         Socio socio = socioRepository
                 .findByNombreUsuario(nombreUsuario)
                 .orElseThrow(() ->
@@ -287,17 +282,12 @@ public class SocioService {
         List<Reserva> reservas = reservaRepository
                 .findReservasBySocioId(socio.getId());
         return reservas.stream().map(reserva -> {
-
             Actividad actividad = reserva.getActividad();
-
             Monitor monitor = actividad.getMonitor();
-
             String nombreMonitor = null;
 
             if (monitor != null) {
-
                 nombreMonitor = monitor.getNombre();
-
                 if (monitor.getApellido() != null) {
                     nombreMonitor += " " + monitor.getApellido();
                 }
@@ -316,4 +306,167 @@ public class SocioService {
             );
         }).collect(Collectors.toList());
     }
+    @Transactional
+    public ReservaSocioDto reservarActividad(
+            String nombreUsuario,
+            Integer actividadId
+    ) {
+
+        // Buscar al socio autenticado
+        Socio socio = socioRepository.findByNombreUsuario(nombreUsuario)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No existe un socio asociado a este usuario."
+                        )
+                );
+
+        if (!Boolean.TRUE.equals(socio.getActivo())) {
+            throw new ReglaNegocioException(
+                    "Tu cuenta de socio no está activa."
+            );
+        }
+
+        // Buscar la actividad
+        Actividad actividad = actividadRepository.findById(actividadId)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No se ha encontrado la actividad."
+                        )
+                );
+
+        // Comprobar que no haya comenzado
+        if (actividad.getDia() == null ||
+                !actividad.getDia().isAfter(LocalDateTime.now())) {
+            throw new ReglaNegocioException(
+                    "No puedes reservar una actividad que ya ha comenzado."
+            );
+        }
+
+        // Evitar reservas duplicadas
+        if (reservaRepository.existsBySocio_IdAndActividad_IdAndEstadoTrue(
+                socio.getId(),
+                actividadId
+        )) {
+            throw new ReglaNegocioException(
+                    "Ya tienes una reserva activa para esta actividad."
+            );
+        }
+
+        // Comprobar aforo
+        long reservasConfirmadas =
+                reservaRepository.countByActividad_IdAndEstadoTrue(
+                        actividadId
+                );
+
+        if (reservasConfirmadas >= actividad.getAforoMaximo()) {
+            throw new ReglaNegocioException(
+                    "No quedan plazas disponibles para esta actividad."
+            );
+        }
+
+        // Crear reserva
+        Reserva reserva = new Reserva();
+
+        reserva.setFechaReserva(LocalDateTime.now());
+        reserva.setEstado(true);
+        reserva.setSocio(socio);
+        reserva.setActividad(actividad);
+
+        Reserva guardada = reservaRepository.save(reserva);
+
+        Monitor monitor = actividad.getMonitor();
+
+        String nombreMonitor = monitor == null
+                ? null
+                : monitor.getNombre() + " " + monitor.getApellido();
+
+        return new ReservaSocioDto(
+                guardada.getId(),
+                guardada.getEstado(),
+                guardada.getFechaReserva(),
+                actividad.getId(),
+                actividad.getNombre(),
+                actividad.getDia(),
+                actividad.getHora(),
+                actividad.getDuracion(),
+                actividad.getSala(),
+                nombreMonitor
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<ActividadDisponibleSocioDto> obtenerActividadesDisponibles() {
+        LocalDateTime ahora = LocalDateTime.now();
+        List<Actividad> actividades =
+                actividadRepository.findByDiaAfterOrderByDiaAsc(ahora);
+        return actividades.stream()
+                .map(actividad -> {
+
+                    long reservasConfirmadas =
+                            reservaRepository.countByActividad_IdAndEstadoTrue(
+                                    actividad.getId()
+                            );
+
+                    long plazasDisponibles =
+                            actividad.getAforoMaximo() - reservasConfirmadas;
+
+                    Monitor monitor = actividad.getMonitor();
+
+                    String nombreMonitor = monitor == null
+                            ? null
+                            : monitor.getNombre()
+                            + (monitor.getApellido() == null
+                            ? ""
+                            : " " + monitor.getApellido());
+
+                    return new ActividadDisponibleSocioDto(
+                            actividad.getId(),
+                            actividad.getNombre(),
+                            actividad.getDia(),
+                            actividad.getHora(),
+                            actividad.getDuracion(),
+                            actividad.getSala(),
+                            actividad.getAforoMaximo(),
+                            Math.max(0, plazasDisponibles),
+                            nombreMonitor
+                    );
+                })
+                .filter(actividad -> actividad.plazasDisponibles() > 0)
+                .toList();
+    }
+    @Transactional
+    public void cancelarReserva(String nombreUsuario, Integer reservaId) {
+
+        Socio socio = socioRepository.findByNombreUsuario(nombreUsuario)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No existe un socio asociado a este usuario."
+                        )
+                );
+
+        Reserva reserva = reservaRepository
+                .findByIdAndSocio_Id(reservaId, socio.getId())
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No se ha encontrado esa reserva."
+                        )
+                );
+
+        if (!Boolean.TRUE.equals(reserva.getEstado())) {
+            throw new ReglaNegocioException(
+                    "Esta reserva ya está cancelada."
+            );
+        }
+
+        if (reserva.getActividad().getDia() == null ||
+                !reserva.getActividad().getDia().isAfter(LocalDateTime.now())) {
+            throw new ReglaNegocioException(
+                    "No puedes cancelar una actividad que ya ha comenzado."
+            );
+        }
+
+        reserva.setEstado(false);
+        reservaRepository.save(reserva);
+    }
+
 }

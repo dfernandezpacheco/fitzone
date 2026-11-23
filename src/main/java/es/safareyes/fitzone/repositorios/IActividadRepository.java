@@ -54,4 +54,11 @@ public interface IActividadRepository extends JpaRepository<Actividad, Integer> 
             LocalDateTime dia,
             Integer monitorId
     );
+
+    List<Actividad> findByDiaGreaterThanEqualAndDiaLessThan(
+            LocalDateTime inicio,
+            LocalDateTime fin
+    );
+
+    List<Actividad> findByDiaAfterOrderByDiaAsc(LocalDateTime fecha);
 }

@@ -33,4 +33,7 @@ public class Reserva {
     @ManyToOne
     @JoinColumn(name = "id_actividad")
     private Actividad actividad;
+
+    @Column(nullable = true)
+    private Boolean asistio;
 }

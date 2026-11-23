@@ -86,6 +86,14 @@ public class SeguridadConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
+                        .requestMatchers(
+                                "/socios/mi-perfil",
+                                "/socios/mi-perfil/**",
+                                "/socios/mi-resumen",
+                                "/socios/mis-reservas",
+                                "/socios/actividades-disponibles"
+                        ).hasRole("SOCIO")
+
                         // LOGIN Y REGISTRO PÚBLICOS
                         .requestMatchers(
                                 HttpMethod.POST,

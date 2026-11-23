@@ -7,12 +7,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.data.repository.query.Param;
-import org.springframework.data.jpa.repository.Query;
 import java.time.LocalDateTime;
+
+
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface IReservaRepository extends JpaRepository<Reserva, Integer> {
@@ -42,5 +43,26 @@ public interface IReservaRepository extends JpaRepository<Reserva, Integer> {
     long contarReservasHoy(
             @Param("inicio") LocalDateTime inicio,
             @Param("fin") LocalDateTime fin
+    );
+
+    boolean existsBySocio_IdAndActividad_IdAndEstadoTrue(
+            Integer socioId,
+            Integer actividadId
+    );
+
+    long countByActividad_IdAndEstadoTrue(Integer actividadId);
+
+    Optional<Reserva> findByIdAndSocio_Id(
+            Integer reservaId,
+            Integer socioId
+    );
+
+    List<Reserva> findByActividad_IdAndEstadoTrueOrderByFechaReservaAsc(
+            Integer actividadId
+    );
+
+    Optional<Reserva> findByIdAndActividad_Id(
+            Integer reservaId,
+            Integer actividadId
     );
 }

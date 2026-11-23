@@ -7,10 +7,14 @@ import es.safareyes.fitzone.exception.RecursoNoEncontradoException;
 import es.safareyes.fitzone.exception.ReglaNegocioException;
 import es.safareyes.fitzone.modelos.Actividad;
 import es.safareyes.fitzone.modelos.Monitor;
+import es.safareyes.fitzone.modelos.Reserva;
 import es.safareyes.fitzone.repositorios.IActividadRepository;
 import es.safareyes.fitzone.repositorios.IMonitorRepository;
-
 import lombok.RequiredArgsConstructor;
+import es.safareyes.fitzone.dto.ReservaRecepcionDto;
+import es.safareyes.fitzone.repositorios.IReservaRepository;
+import es.safareyes.fitzone.modelos.Socio;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +29,7 @@ public class RecepcionTurnosService {
 
     private final IActividadRepository actividadRepository;
     private final IMonitorRepository monitorRepository;
+    private final IReservaRepository reservaRepository;
 
     @Transactional(readOnly = true)
     public List<TurnoRecepcionDto> listarTurnos(LocalDate fecha) {
@@ -75,30 +80,68 @@ public class RecepcionTurnosService {
 
         String sala = dto.sala().trim();
 
-        if (actividadRepository.existsByDiaAndSalaIgnoreCase(
-                fechaHora,
-                sala
-        )) {
-            throw new ReglaNegocioException(
-                    "Ya existe una actividad programada en esa sala y hora."
-            );
-        }
-
-        if (actividadRepository.existsByDiaAndMonitor_Id(
-                fechaHora,
-                dto.monitorId()
-        )) {
-            throw new ReglaNegocioException(
-                    "Ese monitor ya tiene una actividad asignada a esa hora."
-            );
-        }
-
         Monitor monitor = monitorRepository.findById(dto.monitorId())
                 .orElseThrow(() ->
                         new RecursoNoEncontradoException(
                                 "No se ha encontrado el monitor seleccionado."
                         )
                 );
+
+// Evitar que una actividad termine al día siguiente.
+        int inicioNuevo = dto.hora().toSecondOfDay();
+        int finNuevo = inicioNuevo + dto.duracion().toSecondOfDay();
+
+        if (finNuevo > 24 * 60 * 60) {
+            throw new ReglaNegocioException(
+                    "La actividad debe finalizar antes de medianoche."
+            );
+        }
+
+// Obtener las actividades del mismo día.
+        LocalDateTime inicioDia = dto.fecha().atStartOfDay();
+        LocalDateTime finDia = dto.fecha().plusDays(1).atStartOfDay();
+
+        List<Actividad> actividadesDelDia =
+                actividadRepository.findByDiaGreaterThanEqualAndDiaLessThan(
+                        inicioDia,
+                        finDia
+                );
+
+// Comprobar conflictos de horario.
+        for (Actividad existente : actividadesDelDia) {
+
+            int inicioExistente = existente.getDia()
+                    .toLocalTime()
+                    .toSecondOfDay();
+
+            int finExistente = inicioExistente
+                    + existente.getDuracion().toSecondOfDay();
+
+            boolean seSolapan =
+                    inicioNuevo < finExistente
+                            && finNuevo > inicioExistente;
+
+            if (seSolapan) {
+
+                boolean mismaSala = existente.getSala() != null
+                        && existente.getSala().equalsIgnoreCase(sala);
+
+                boolean mismoMonitor = existente.getMonitor() != null
+                        && existente.getMonitor().getId().equals(monitor.getId());
+
+                if (mismaSala) {
+                    throw new ReglaNegocioException(
+                            "La sala ya está ocupada durante ese horario."
+                    );
+                }
+
+                if (mismoMonitor) {
+                    throw new ReglaNegocioException(
+                            "El monitor ya tiene otra actividad durante ese horario."
+                    );
+                }
+            }
+        }
 
         Actividad actividad = new Actividad();
 
@@ -124,5 +167,71 @@ public class RecepcionTurnosService {
                 monitor.getNombre() + " " + monitor.getApellido(),
                 0L
         );
+    }
+    @Transactional(readOnly = true)
+    public List<ReservaRecepcionDto> listarReservasActividad(
+            Integer actividadId
+    ) {
+        Actividad actividad = actividadRepository.findById(actividadId)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No se ha encontrado la actividad."
+                        )
+                );
+
+        List<Reserva> reservas =
+                reservaRepository
+                        .findByActividad_IdAndEstadoTrueOrderByFechaReservaAsc(
+                                actividad.getId()
+                        );
+
+        return reservas.stream()
+                .map(reserva -> {
+                    Socio socio = reserva.getSocio();
+
+                    return new ReservaRecepcionDto(
+                            reserva.getId(),
+                            socio.getId(),
+                            socio.getNombre(),
+                            socio.getApellido(),
+                            reserva.getFechaReserva(),
+                            reserva.getEstado(),
+                            reserva.getAsistio()
+                    );
+                })
+                .toList();
+    }
+
+    @Transactional
+    public void actualizarAsistencia(
+            Integer actividadId,
+            Integer reservaId,
+            Boolean asistio
+    ) {
+
+        Actividad actividad = actividadRepository.findById(actividadId)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No se ha encontrado la actividad."
+                        )
+                );
+
+        Reserva reserva = reservaRepository
+                .findByIdAndActividad_Id(reservaId, actividadId)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No se ha encontrado la reserva de esta actividad."
+                        )
+                );
+
+        if (!Boolean.TRUE.equals(reserva.getEstado())) {
+            throw new ReglaNegocioException(
+                    "No se puede registrar asistencia para una reserva cancelada."
+            );
+        }
+
+        reserva.setAsistio(asistio);
+
+        reservaRepository.save(reserva);
     }
 }

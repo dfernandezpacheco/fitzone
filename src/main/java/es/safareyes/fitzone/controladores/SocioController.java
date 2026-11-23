@@ -1,8 +1,6 @@
 package es.safareyes.fitzone.controladores;
 
-import es.safareyes.fitzone.dto.ActualizarSocioDto;
-import es.safareyes.fitzone.dto.CrearSocioDto;
-import es.safareyes.fitzone.dto.SocioResponseDto;
+import es.safareyes.fitzone.dto.*;
 import es.safareyes.fitzone.servicios.SocioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +10,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import es.safareyes.fitzone.dto.MiPerfilSocioDto;
-import es.safareyes.fitzone.dto.ResumenSocioDto;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import es.safareyes.fitzone.dto.ReservaSocioDto;
+import java.util.List;
 
 @RestController
 @RequestMapping("/socios")
@@ -65,9 +63,42 @@ public class SocioController {
                 socioService.obtenerMiPerfil(nombreUsuario)
         );
     }
-
+    // Obtener resumen socio
     @GetMapping("/mi-resumen")
     public ResponseEntity<ResumenSocioDto> obtenerMiResumen(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(socioService.obtenerResumen(jwt.getSubject()));
+    }
+
+    // obtener reservas por id
+    @PostMapping("/mis-reservas/{actividadId}")
+    public ResponseEntity<ReservaSocioDto> reservarActividad(
+            @PathVariable Integer actividadId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                socioService.reservarActividad(
+                        jwt.getSubject(),
+                        actividadId
+                )
+        );
+    }
+    // ontener reservas por socio
+    @GetMapping("/mis-reservas")
+    public ResponseEntity<List<ReservaSocioDto>> obtenerMisReservas(
+            @AuthenticationPrincipal Jwt jwt) {
+
+        return ResponseEntity.ok(
+                socioService.obtenerMisReservas(jwt.getSubject())
+        );
+    }
+
+    // obtener actividades disponibles por socio
+    @GetMapping("/actividades-disponibles")
+    public ResponseEntity<List<ActividadDisponibleSocioDto>>
+    obtenerActividadesDisponibles() {
+
+        return ResponseEntity.ok(
+                socioService.obtenerActividadesDisponibles()
+        );
     }
 }

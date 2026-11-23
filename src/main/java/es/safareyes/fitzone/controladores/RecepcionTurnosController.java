@@ -1,8 +1,6 @@
 package es.safareyes.fitzone.controladores;
 
-import es.safareyes.fitzone.dto.CrearTurnoRecepcionDto;
-import es.safareyes.fitzone.dto.MonitorRecepcionDto;
-import es.safareyes.fitzone.dto.TurnoRecepcionDto;
+import es.safareyes.fitzone.dto.*;
 import es.safareyes.fitzone.servicios.RecepcionTurnosService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,5 +45,24 @@ public class RecepcionTurnosController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(recepcionTurnosService.crearTurno(dto));
+    }
+
+    @GetMapping("/{actividadId}/reservas")
+    public ResponseEntity<List<ReservaRecepcionDto>> listarReservasActividad(
+            @PathVariable Integer actividadId
+    ) {
+        return ResponseEntity.ok(
+                recepcionTurnosService.listarReservasActividad(actividadId)
+        );
+    }
+
+    @PutMapping("/{actividadId}/reservas/{reservaId}/asistencia")
+    public ResponseEntity<Void> actualizarAsistencia(
+            @PathVariable Integer actividadId,
+            @PathVariable Integer reservaId,
+            @Valid @RequestBody ActualizarAsistenciaDto dto
+    ) {
+        recepcionTurnosService.actualizarAsistencia(actividadId, reservaId, dto.asistio());
+        return ResponseEntity.noContent().build();
     }
 }
