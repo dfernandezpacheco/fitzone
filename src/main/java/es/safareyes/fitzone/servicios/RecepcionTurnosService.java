@@ -193,7 +193,7 @@ public class RecepcionTurnosService {
                             reserva.getId(),
                             socio.getId(),
                             socio.getNombre(),
-                            socio.getApellido(),
+                            socio.getApellidos(),
                             reserva.getFechaReserva(),
                             reserva.getEstado(),
                             reserva.getAsistio()
@@ -231,6 +231,24 @@ public class RecepcionTurnosService {
         }
 
         reserva.setAsistio(asistio);
+
+        reservaRepository.save(reserva);
+    }
+
+    @Transactional
+    public void cancelarReserva(Integer actividadId, Integer reservaId) {
+
+        Reserva reserva = reservaRepository
+                .findByIdAndActividad_Id(reservaId, actividadId)
+                .orElseThrow(() -> new RuntimeException(
+                        "No se ha encontrado la reserva para esta actividad"
+                ));
+
+        if (!Boolean.TRUE.equals(reserva.getEstado())) {
+            throw new RuntimeException("La reserva ya está cancelada");
+        }
+
+        reserva.setEstado(false);
 
         reservaRepository.save(reserva);
     }

@@ -65,4 +65,14 @@ public class RecepcionTurnosController {
         recepcionTurnosService.actualizarAsistencia(actividadId, reservaId, dto.asistio());
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/turnos/{actividadId}/reservas/{reservaId}/cancelar")
+    public ResponseEntity<Void> cancelarReserva(
+            @PathVariable Integer actividadId,
+            @PathVariable Integer reservaId) {
+
+        recepcionTurnosService.cancelarReserva(actividadId, reservaId);
+
+        return ResponseEntity.noContent().build();
+    }
 }
