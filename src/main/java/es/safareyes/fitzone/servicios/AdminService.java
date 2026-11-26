@@ -1,6 +1,6 @@
 package es.safareyes.fitzone.servicios;
 
-import es.safareyes.fitzone.dto.AdminResumenDto;
+import es.safareyes.fitzone.dto.response.AdminResumenDto;
 import es.safareyes.fitzone.repositorios.ICuotaRepository;
 import es.safareyes.fitzone.repositorios.IPlanRepository;
 import es.safareyes.fitzone.repositorios.ISocioRepository;

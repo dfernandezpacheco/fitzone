@@ -1,8 +1,8 @@
 package es.safareyes.fitzone.servicios;
 
-import es.safareyes.fitzone.dto.AltaMensualDto;
-import es.safareyes.fitzone.dto.InformeAdminDto;
-import es.safareyes.fitzone.dto.IngresoMensualDto;
+import es.safareyes.fitzone.dto.response.AltaMensualDto;
+import es.safareyes.fitzone.dto.response.InformeAdminDto;
+import es.safareyes.fitzone.dto.response.IngresoMensualDto;
 import es.safareyes.fitzone.repositorios.ICuotaRepository;
 import es.safareyes.fitzone.repositorios.ISocioRepository;
 

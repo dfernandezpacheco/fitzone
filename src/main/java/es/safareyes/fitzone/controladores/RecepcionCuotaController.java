@@ -1,7 +1,7 @@
 package es.safareyes.fitzone.controladores;
 
-import es.safareyes.fitzone.dto.CuotaAdminDto;
-import es.safareyes.fitzone.dto.ResumenCuotasRecepcionDto;
+import es.safareyes.fitzone.dto.response.CuotaAdminDto;
+import es.safareyes.fitzone.dto.response.ResumenCuotasRecepcionDto;
 import es.safareyes.fitzone.servicios.RecepcionCuotaService;
 
 import lombok.RequiredArgsConstructor;

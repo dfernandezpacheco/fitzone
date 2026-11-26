@@ -1,6 +1,6 @@
 package es.safareyes.fitzone.controladores;
 
-import es.safareyes.fitzone.dto.AdminResumenDto;
+import es.safareyes.fitzone.dto.response.AdminResumenDto;
 import es.safareyes.fitzone.servicios.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

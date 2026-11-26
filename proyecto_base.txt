@@ -1,0 +1,1521 @@
+==> src/main/resources/schema.sql <==
+-- Ajustes para una base de datos ya poblada.
+-- Sincronizan los contadores SERIAL con el último id real de cada tabla.
+-- Así PostgreSQL no intenta reutilizar ids existentes al crear nuevos registros.
+
+ALTER TABLE fitzone.socio
+    ALTER COLUMN matricula DROP NOT NULL;
+
+ALTER TABLE fitzone.socio
+    ALTER COLUMN id_usuario DROP NOT NULL;
+
+SELECT setval(pg_get_serial_sequence('fitzone.usuario', 'id'),
+              COALESCE((SELECT MAX(id) FROM fitzone.usuario), 0) + 1, false);
+
+SELECT setval(pg_get_serial_sequence('fitzone.socio', 'id'),
+              COALESCE((SELECT MAX(id) FROM fitzone.socio), 0) + 1, false);
+
+SELECT setval(pg_get_serial_sequence('fitzone.plan', 'id'),
+              COALESCE((SELECT MAX(id) FROM fitzone.plan), 0) + 1, false);
+
+SELECT setval(pg_get_serial_sequence('fitzone.actividad', 'id'),
+              COALESCE((SELECT MAX(id) FROM fitzone.actividad), 0) + 1, false);
+
+SELECT setval(pg_get_serial_sequence('fitzone.reserva', 'id'),
+              COALESCE((SELECT MAX(id) FROM fitzone.reserva), 0) + 1, false);
+
+SELECT setval(pg_get_serial_sequence('fitzone.cuota', 'id'),
+              COALESCE((SELECT MAX(id) FROM fitzone.cuota), 0) + 1, false);
+
+SELECT setval(pg_get_serial_sequence('fitzone.acceso', 'id'),
+              COALESCE((SELECT MAX(id) FROM fitzone.acceso), 0) + 1, false);
+
+SELECT setval(pg_get_serial_sequence('fitzone.monitor', 'id'),
+              COALESCE((SELECT MAX(id) FROM fitzone.monitor), 0) + 1, false);
+
+==> src/main/java/es/safareyes/fitzone/modelos/Acceso.java <==
+package es.safareyes.fitzone.modelos;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Table(schema = "fitzone", name = "acceso")
+@Getter
+@Setter
+@EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+public class Acceso {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "fecha_hora_entrada")
+    private LocalDateTime fechaHoraEntrada;
+
+    @Column(name = "hora_salida")
+    private LocalDateTime HoraSalida;
+
+    @Column(name = "tipo_resultado")
+    private String tipoResultado;
+
+    @Column(name = "motivo_denegacion")
+    private Integer motivoDenegacion;
+
+    @Column(name = "ticket parking")
+    private Boolean ticketParking;
+
+    @ManyToOne
+    @JoinColumn(name = "id_socio")
+    private Socio socio;
+}
+
+==> src/main/java/es/safareyes/fitzone/modelos/Actividad.java <==
+package es.safareyes.fitzone.modelos;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+
+    @Entity
+    @Table(schema = "fitzone", name = "actividad")
+    @Getter @Setter
+    @EqualsAndHashCode
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public class Actividad {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "nombre")
+    private String nombre;
+
+    @Column(name = "hora")
+    private LocalTime hora;
+
+    @Column(name = "duracion")
+    private LocalTime duracion;
+
+    @Column(name = "sala")
+    private String sala;
+
+    @Column(name = "aforo_maximo")
+    private Integer aforoMaximo;
+
+    @Column(name = "dia")
+    private LocalDateTime dia;
+
+    @ManyToOne
+    @JoinColumn(name = "id_monitor")
+    private Monitor monitor;
+
+    @OneToMany(mappedBy = "actividad")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Reserva> reservas;
+}
+==> src/main/java/es/safareyes/fitzone/modelos/Cuota.java <==
+package es.safareyes.fitzone.modelos;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(schema= "fitzone" , name = "cuota")
+@Getter
+@Setter
+@EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+
+public class Cuota {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "mes")
+    private Integer mes;
+
+    @Column(name = "anio")
+    private Integer anio;
+
+    @Column(name = "importe")
+    private BigDecimal importe;
+
+    @Column(name = "estado")
+    private String estado;
+
+    @Column(name = "fecha_pago")
+    private LocalDateTime fechaPago;
+
+    @ManyToOne
+    @JoinColumn(name = "id_socio")
+    private Socio socio;
+}
+
+==> src/main/java/es/safareyes/fitzone/modelos/Monitor.java <==
+package es.safareyes.fitzone.modelos;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.List;
+
+@Entity
+@Table(schema = "fitzone", name = "monitor")
+@Getter
+@Setter
+@EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+public class Monitor {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "nombre")
+    private String nombre;
+
+    @Column(name = "apellido")
+    private String apellido;
+
+    @Column(name = "telefono")
+    private Integer telefono;
+
+    @OneToMany(mappedBy = "monitor")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Actividad> actividades;
+}
+==> src/main/java/es/safareyes/fitzone/modelos/Plan.java <==
+package es.safareyes.fitzone.modelos;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+@Entity
+@Table(schema = "fitzone", name = "plan")
+@Getter
+@Setter
+@EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+
+public class Plan {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "nombre")
+    private String nombre;
+
+    @Column(name = "precio_mesual")
+    private Double precioMesual;
+
+    @Column(name = "tipo")
+    @Enumerated(EnumType.ORDINAL)
+    private TipoPlan tipo;
+}
+
+==> src/main/java/es/safareyes/fitzone/modelos/Reserva.java <==
+package es.safareyes.fitzone.modelos;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(schema = "fitzone", name = "reserva")
+@Getter
+@Setter
+@EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+public class Reserva {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "fecha_reserva")
+    private LocalDateTime fechaReserva;
+
+    @Column(name = "estado")
+    private Boolean estado;
+
+    @ManyToOne
+    @JoinColumn(name = "id_socio")
+    private Socio socio;
+
+    @ManyToOne
+    @JoinColumn(name = "id_actividad")
+    private Actividad actividad;
+
+    @Column(nullable = true)
+    private Boolean asistio;
+}
+==> src/main/java/es/safareyes/fitzone/modelos/Socio.java <==
+package es.safareyes.fitzone.modelos;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Entity
+@Table(schema = "fitzone", name = "socio")
+@Getter
+@Setter
+@EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+public class Socio {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "dni")
+    private String dni;
+
+    @Column(name = "nombre")
+    private String nombre;
+
+    @Column(name = "apellidos")
+    private String apellidos;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "telefono")
+    private String telefono;
+
+    @Column(name = "fecha_alta")
+    private LocalDate fechaAlta;
+
+    @Column(name = "activo")
+    private Boolean activo;
+
+    @Column(name = "matricula")
+    private String matricula;
+
+    @OneToMany(mappedBy = "socio")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Reserva> reservas;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", nullable = true)
+    private Usuario usuario;
+
+    @ManyToOne
+    @JoinColumn(name = "id_plan")
+    private Plan plan;
+}
+==> src/main/java/es/safareyes/fitzone/modelos/TipoPlan.java <==
+package es.safareyes.fitzone.modelos;
+
+public enum TipoPlan {
+    BASICO, ESTUDIANTE, FAMILIAR, PREMIUM, VIP
+}
+
+==> src/main/java/es/safareyes/fitzone/modelos/Usuario.java <==
+package es.safareyes.fitzone.modelos;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(schema = "fitzone", name = "usuario")
+@Getter
+@Setter
+@EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+
+public class Usuario {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "usuario")
+    private String usuario;
+
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "rol")
+    private Integer rol;
+}
+
+==> src/main/java/es/safareyes/fitzone/repositorios/IAccesoRepository.java <==
+package es.safareyes.fitzone.repositorios;
+
+import es.safareyes.fitzone.modelos.Acceso;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigInteger;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface IAccesoRepository extends JpaRepository<Acceso, Integer> {
+
+    List<Acceso> findByTipoResultadoEquals(String nombre);
+
+    @Query("SELECT COUNT(a) FROM Acceso a WHERE a.HoraSalida IS NULL")
+    long cuentaPersonasActivas();
+
+    // Comprueba si el socio tiene una entrada permitida hoy sin salida registrada (RN-05, RN-07)
+    @Query("SELECT COUNT(a) > 0 FROM Acceso a WHERE a.socio.id = :socioId " +
+            "AND a.resultado = 'PERMITIDO' AND a.fechaSalida IS NULL " +
+            "AND a.fechaEntrada >= :inicioDia")
+    boolean tieneEntradaAbiertaHoy(@Param("socioId") Integer socioId, @Param("inicioDia") LocalDateTime inicioDia);
+
+    // Obtiene la entrada abierta de hoy para registrar la salida (RN-07)
+    @Query("SELECT a FROM Acceso a WHERE a.socio.id = :socioId " +
+            "AND a.resultado = 'PERMITIDO' AND a.fechaSalida IS NULL " +
+            "AND a.fechaEntrada >= :inicioDia")
+    Optional<Acceso> buscarEntradaAbiertaHoy(@Param("socioId") Integer socioId, @Param("inicioDia") LocalDateTime inicioDia);
+
+    // Aforo actual: entradas permitidas del día sin salida registrada (Q2 - RN-07)
+    @Query("SELECT COUNT(a) FROM Acceso a WHERE a.resultado = 'PERMITIDO' " +
+            "AND a.fechaSalida IS NULL AND a.fechaEntrada >= :inicioDia")
+    long contarPersonasDentro(@Param("inicioDia") LocalDateTime inicioDia);
+}
+
+==> src/main/java/es/safareyes/fitzone/repositorios/IActividadRepository.java <==
+package es.safareyes.fitzone.repositorios;
+
+import es.safareyes.fitzone.modelos.Actividad;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import es.safareyes.fitzone.dto.response.TurnoRecepcionDto;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Repository
+public interface IActividadRepository extends JpaRepository<Actividad, Integer> {
+
+    @Query("SELECT a FROM Actividad a " +
+            "WHERE (SELECT COUNT(r) FROM Reserva r WHERE r.actividad = a AND r.fechaReserva BETWEEN :inicioDay AND :finDay) < a.aforoMaximo")
+    List<Actividad> findActividadesConPlazasLibres(@Param("inicioDay") LocalDateTime inicioDay,
+                                                   @Param("finDay") LocalDateTime finDay);
+
+    long countByDiaGreaterThanEqualAndDiaLessThan(
+            LocalDateTime inicio,
+            LocalDateTime fin
+    );
+
+    @Query("""
+    SELECT new es.safareyes.fitzone.dto.response.TurnoRecepcionDto(a.id,a.nombre,a.dia,a.hora,a.duracion,a.sala,a.aforoMaximo,m.id, CONCAT(m.nombre, ' ', m.apellido),
+        (            SELECT COUNT(r)
+            FROM Reserva r
+            WHERE r.actividad = a
+              AND r.estado = true
+        )
+    )
+    FROM Actividad a
+    LEFT JOIN a.monitor m
+    WHERE a.dia >= :inicio
+      AND a.dia < :fin
+    ORDER BY a.dia ASC, a.hora ASC
+    """)
+    List<TurnoRecepcionDto> listarTurnosPorFecha(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
+
+    boolean existsByDiaAndSalaIgnoreCase(
+            LocalDateTime dia,
+            String sala
+    );
+
+    boolean existsByDiaAndMonitor_Id(
+            LocalDateTime dia,
+            Integer monitorId
+    );
+
+    List<Actividad> findByDiaGreaterThanEqualAndDiaLessThan(
+            LocalDateTime inicio,
+            LocalDateTime fin
+    );
+
+    List<Actividad> findByDiaAfterOrderByDiaAsc(LocalDateTime fecha);
+}
+
+==> src/main/java/es/safareyes/fitzone/repositorios/ICuotaRepository.java <==
+package es.safareyes.fitzone.repositorios;
+
+
+import es.safareyes.fitzone.modelos.Cuota;
+import es.safareyes.fitzone.modelos.Socio;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import es.safareyes.fitzone.dto.response.CuotaAdminDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ICuotaRepository extends JpaRepository<Cuota, Integer> {
+
+    Page<Cuota> findAllBySocioId(Integer socioId, Pageable pageable);
+
+    List<Cuota> findByMesAndAnioAndEstado(Integer mes, Integer anio, String estado);
+
+    Optional<Cuota> findFirstBySocioIdAndMesAndAnioOrderByIdDesc(Integer socioId, Integer mes, Integer anio);
+
+    @Query("SELECT c.mes, p.nombre, SUM(c.importe) " +
+            "FROM Cuota c " +
+            "JOIN c.socio s " +
+            "JOIN s.plan p " +
+            "WHERE c.anio = :anio " +
+            "GROUP BY c.mes, p.nombre " +
+            "ORDER BY c.mes ASC, p.nombre ASC")
+        List<Object[]> findIngresosPorMesYPlan(@Param("anio") Integer anio);
+
+    @Query("""
+    SELECT COALESCE(SUM(c.importe), 0)
+    FROM Cuota c
+    WHERE c.fechaPago >= :inicio
+      AND c.fechaPago < :fin
+      AND UPPER(c.estado) IN ('PAGADA', 'PAGADO')
+    """)
+    BigDecimal calcularIngresosEntreFechas(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
+
+    long countByEstadoIgnoreCase(String estado);
+
+    @Query(
+            value = """
+        SELECT new es.safareyes.fitzone.dto.response.CuotaAdminDto(
+            c.id,c.mes,c.anio,c.importe,c.estado,c.fechaPago,s.id,s.nombre,s.apellidos,s.dni,p.nombre
+        )
+        FROM Cuota c
+        LEFT JOIN c.socio s
+        LEFT JOIN s.plan p
+        ORDER BY c.anio DESC, c.mes DESC, c.id DESC
+        """,
+            countQuery = "SELECT COUNT(c) FROM Cuota c"
+    )
+    Page<CuotaAdminDto> listarCuotasAdmin(Pageable pageable);
+
+    long countByAnio(Integer anio);
+
+    long countByAnioAndEstadoIgnoreCase(Integer anio, String estado);
+
+    boolean existsBySocioIdAndMesAndAnioAndPagadaTrue(Integer socioId, Integer mes, Integer anio);
+
+    boolean existsBySocioIdAndMesAndAnio(Integer socioId, Integer mes, Integer anio);
+
+    Page<Cuota> findBySocioIdOrderByAnioDescMesDesc(Integer socioId, Pageable pageable);
+
+    // Endpoint 10: Morosos de un mes (Q2 JPQL con JOIN)
+    @Query("SELECT c FROM Cuota c JOIN FETCH c.socio s WHERE c.mes = :mes AND c.anio = :anio AND c.pagada = false")
+    List<Cuota> findPendientesByMesAndAnio(@Param("mes") Integer mes, @Param("anio") Integer anio);
+}
+
+==> src/main/java/es/safareyes/fitzone/repositorios/IMonitorRepository.java <==
+package es.safareyes.fitzone.repositorios;
+
+import es.safareyes.fitzone.modelos.Monitor;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface IMonitorRepository extends JpaRepository<Monitor, Integer> {
+
+    List<Monitor> findAllByOrderByNombreAscApellidoAsc();
+}
+
+==> src/main/java/es/safareyes/fitzone/repositorios/IPlanRepository.java <==
+package es.safareyes.fitzone.repositorios;
+
+
+import es.safareyes.fitzone.modelos.Plan;
+import es.safareyes.fitzone.modelos.TipoPlan;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface IPlanRepository extends JpaRepository<Plan, Integer> {
+
+    List<Plan> findByTipo(TipoPlan tipo);
+    List<Plan> findAll ();
+    boolean existsByNombreIgnoreCase(String nombre);
+    boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Integer id);
+}
+
+==> src/main/java/es/safareyes/fitzone/repositorios/IReservaRepository.java <==
+package es.safareyes.fitzone.repositorios;
+
+
+import es.safareyes.fitzone.dto.response.ReservaListadoRecepcionDto;
+import es.safareyes.fitzone.modelos.Actividad;
+import es.safareyes.fitzone.modelos.Reserva;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import java.time.LocalDateTime;
+
+
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface IReservaRepository extends JpaRepository<Reserva, Integer> {
+
+    @Query("SELECT a FROM Actividad a " +
+            "WHERE (SELECT COUNT(r) FROM Reserva r WHERE r.actividad = a AND r.fechaReserva = :fecha) < a.aforoMaximo")
+    List<Actividad> findActividadesConPlazasPorFecha(@Param("fecha") LocalDate fecha);
+
+    @Query("""
+    SELECT r
+    FROM Reserva r
+    JOIN FETCH r.actividad a
+    LEFT JOIN FETCH a.monitor
+    WHERE r.socio.id = :socioId
+    ORDER BY a.dia ASC, a.hora ASC
+""")
+    List<Reserva> findReservasBySocioId(
+            @Param("socioId") Integer socioId
+    );
+
+    @Query("""
+    SELECT COUNT(r)
+    FROM Reserva r
+    WHERE r.actividad.dia >= :inicio
+      AND r.actividad.dia < :fin
+    """)
+    long contarReservasHoy(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
+
+    boolean existsBySocio_IdAndActividad_IdAndEstadoTrue(
+            Integer socioId,
+            Integer actividadId
+    );
+
+    long countByActividad_IdAndEstadoTrue(Integer actividadId);
+
+    Optional<Reserva> findByIdAndSocio_Id(
+            Integer reservaId,
+            Integer socioId
+    );
+
+    List<Reserva> findByActividad_IdAndEstadoTrueOrderByFechaReservaAsc(
+            Integer actividadId
+    );
+
+    Optional<Reserva> findByIdAndActividad_Id(
+            Integer reservaId,
+            Integer actividadId
+    );
+
+    @Query("""
+    SELECT r.id, a.id, a.nombre, a.dia, a.hora,
+        CONCAT(s.nombre, ' ', s.apellidos), s.dni,
+        CONCAT(m.nombre, ' ', m.apellido),
+        r.estado, r.asistio
+    FROM Reserva r
+    JOIN r.actividad a
+    JOIN r.socio s
+    LEFT JOIN a.monitor m
+    WHERE a.dia >= :inicio
+      AND a.dia < :fin
+    ORDER BY a.dia ASC, a.hora ASC, s.apellidos ASC
+    """)
+    List<ReservaListadoRecepcionDto> listarReservasPorRango(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin);
+}
+
+==> src/main/java/es/safareyes/fitzone/repositorios/ISocioRepository.java <==
+package es.safareyes.fitzone.repositorios;
+import es.safareyes.fitzone.modelos.Socio;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import es.safareyes.fitzone.dto.response.DistribucionPlanDto;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ISocioRepository extends JpaRepository<Socio, Integer>, JpaSpecificationExecutor<Socio> {
+
+    List<Socio> findByFechaAltaAndActivoAndMatricula(LocalDate fechaAlta, Boolean activo, String matricula);
+
+    Optional<Socio> findById(Integer id);
+
+    Page<Socio> findAll(Pageable pageable);
+
+    boolean existsByDni(String dni);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByEmailIgnoreCase(String email);
+
+
+    @Query("SELECT s FROM Socio s " +
+            "LEFT JOIN FETCH s.plan " +
+            "WHERE s.usuario.usuario = :usuario")
+    Optional<Socio> findByNombreUsuario(
+            @Param("usuario") String usuario
+    );
+
+    long countByActivoTrue();
+
+    long countByActivoFalse();
+
+    @Query("""
+    SELECT new es.safareyes.fitzone.dto.response.DistribucionPlanDto(
+        COALESCE(p.nombre, 'Sin plan'),
+        COUNT(s.id)
+    )
+    FROM Socio s
+    LEFT JOIN s.plan p
+    GROUP BY p.nombre
+    ORDER BY p.nombre
+    """)
+    List<DistribucionPlanDto> obtenerDistribucionSociosPorPlan();
+
+    long countByFechaAltaGreaterThanEqualAndFechaAltaLessThan(
+            LocalDate inicio,
+            LocalDate fin
+    );
+    List<Socio> findTop5ByOrderByFechaAltaDesc();
+
+    // Añadir en ISocioRepository.java (Q4 @Modifying para RN-04)
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Socio s SET s.activo = false WHERE s.activo = true AND " +
+            "(SELECT COUNT(c) FROM Cuota c WHERE c.socio.id = s.id AND c.pagada = false) >= 2")
+    int desactivarSociosMorosos();
+}
+
+==> src/main/java/es/safareyes/fitzone/repositorios/IUsuarioRepository.java <==
+package es.safareyes.fitzone.repositorios;
+
+
+import es.safareyes.fitzone.modelos.Usuario;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface IUsuarioRepository extends JpaRepository<Usuario, Integer> {
+
+    Optional<Usuario> findByUsuario(String usuario);
+
+    boolean existsByUsuario(String usuario);
+
+}
+
+==> src/main/java/es/safareyes/fitzone/conversores/PlanMapper.java <==
+package es.safareyes.fitzone.conversores;
+
+import es.safareyes.fitzone.dto.response.PlanResponseDto;
+import es.safareyes.fitzone.modelos.Plan;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+public class PlanMapper {
+    public PlanResponseDto toDto(Plan plan) {
+        if (plan == null) {
+            return null;
+        }
+        return new PlanResponseDto(
+                plan.getId(),
+                plan.getNombre(),
+                plan.getPrecioMesual(),
+                plan.getTipo()
+        );
+    }
+    public List<PlanResponseDto> toDtoList(List<Plan> planes) {
+        return planes.stream()
+                .map(this::toDto)
+                .toList();
+    }
+}
+==> src/main/java/es/safareyes/fitzone/conversores/SocioMapper.java <==
+package es.safareyes.fitzone.conversores;
+
+import es.safareyes.fitzone.dto.request.CrearSocioDto;
+import es.safareyes.fitzone.dto.response.SocioResponseDto;
+import es.safareyes.fitzone.modelos.Plan;
+import es.safareyes.fitzone.modelos.Socio;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+public class SocioMapper {
+
+    private final PlanMapper planMapper;
+
+    public Socio toEntity(CrearSocioDto dto, Plan plan) {
+        if (dto == null) return null;
+
+        Socio socio = new Socio();
+        socio.setDni(dto.dni().toUpperCase());
+        socio.setNombre(dto.nombre());
+        socio.setApellidos(dto.apellidos());
+        socio.setEmail(dto.email());
+        socio.setTelefono(dto.telefono());
+        socio.setMatricula(dto.matricula() != null ? dto.matricula().toUpperCase() : null);
+        socio.setActivo(true);
+        socio.setFechaAlta(LocalDate.now());
+        socio.setPlan(plan);
+        return socio;
+    }
+
+    public SocioResponseDto toDto(Socio socio) {
+        if (socio == null) return null;
+
+        return new SocioResponseDto(
+                socio.getId(),
+                socio.getDni(),
+                socio.getNombre(),
+                socio.getApellidos(),
+                socio.getEmail(),
+                socio.getTelefono(),
+                socio.getMatricula(),
+                socio.getActivo(),
+                socio.getFechaAlta(),
+                planMapper.toDto(socio.getPlan())
+        );
+    }
+
+    public List<SocioResponseDto> toDtoList(List<Socio> socios) {
+        return socios.stream().map(this::toDto).toList();
+    }
+}
+==> src/main/java/es/safareyes/fitzone/servicios/CuotaAdminService.java <==
+package es.safareyes.fitzone.servicios;
+
+import es.safareyes.fitzone.dto.response.CuotaAdminDto;
+import es.safareyes.fitzone.dto.response.GeneracionCuotasResponseDto;
+import es.safareyes.fitzone.exception.RecursoNoEncontradoException;
+import es.safareyes.fitzone.repositorios.ICuotaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class CuotaAdminService {
+
+    private final ICuotaRepository cuotaRepository;
+
+    @Transactional(readOnly = true)
+    public Page<CuotaAdminDto> listarCuotas(Pageable pageable) {
+        return cuotaRepository.listarCuotasAdmin(pageable);
+    }
+
+    // Lógica para Endpoint 7 (RN-03 y RN-04)
+    @Transactional
+    public GeneracionCuotasResponseDto generarCuotasMensuales(Integer mes, Integer anio) {
+        // 1. RN-04: Marcar como INACTIVO a socios con 2 o más cuotas pendientes
+        int desactivados = socioRepository.desactivarSociosMorosos();
+
+        // 2. Generar cuotas solo para socios activos que no la tengan ya este mes/año
+        List<Socio> activos = socioRepository.findByActivoTrue();
+        int generadas = 0;
+
+        for (Socio socio : activos) {
+            if (!cuotaRepository.existsBySocioIdAndMesAndAnio(socio.getId(), mes, anio)) {
+                Cuota nueva = new Cuota();
+                nueva.setSocio(socio);
+                nueva.setMes(mes);
+                nueva.setAnio(anio);
+                nueva.setImporte(socio.getPlan().getPrecioMensual()); // Precio del plan en este momento (RN-03)
+                nueva.setPagada(false);
+                cuotaRepository.save(nueva);
+                generadas++;
+            }
+        }
+        return new GeneracionCuotasResponseDto(mes, anio, generadas, desactivados);
+    }
+
+    // Lógica para Endpoint 9 (historial paginado de un socio)
+    @Transactional(readOnly = true)
+    public Page<CuotaAdminDto> listarCuotasPorSocio(Integer socioId, Pageable pageable) {
+        if (!socioRepository.existsById(socioId)) {
+            throw new RecursoNoEncontradoException("No existe el socio con id " + socioId);
+        }
+        return cuotaRepository.findBySocioIdOrderByAnioDescMesDesc(socioId, pageable)
+                .map(this::toCuotaAdminDto); // Usa el mismo conversor que ya tienes en listarCuotas
+    }
+
+    // Lógica para Endpoint 10 (morosos de un mes)
+    @Transactional(readOnly = true)
+    public List<CuotaAdminDto> listarPendientes(Integer mes, Integer anio) {
+        return cuotaRepository.findPendientesByMesAndAnio(mes, anio).stream()
+                .map(this::toCuotaAdminDto)
+                .toList();
+    }
+}
+==> src/main/java/es/safareyes/fitzone/servicios/SocioService.java <==
+package es.safareyes.fitzone.servicios;
+
+import es.safareyes.fitzone.conversores.SocioMapper;
+import es.safareyes.fitzone.dto.request.ActualizarSocioDto;
+import es.safareyes.fitzone.dto.request.CrearSocioDto;
+import es.safareyes.fitzone.dto.response.SocioResponseDto;
+import es.safareyes.fitzone.exception.RecursoNoEncontradoException;
+import es.safareyes.fitzone.exception.ReglaNegocioException;
+import es.safareyes.fitzone.modelos.Plan;
+import es.safareyes.fitzone.modelos.Socio;
+import es.safareyes.fitzone.repositorios.IPlanRepository;
+import es.safareyes.fitzone.repositorios.IReservaRepository;
+import es.safareyes.fitzone.repositorios.ISocioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import es.safareyes.fitzone.dto.response.MiPerfilSocioDto;
+import es.safareyes.fitzone.dto.response.ActividadResumenDto;
+import es.safareyes.fitzone.dto.response.ResumenSocioDto;
+import es.safareyes.fitzone.dto.response.ReservaSocioDto;
+import es.safareyes.fitzone.modelos.Reserva;
+import es.safareyes.fitzone.modelos.Actividad;
+import es.safareyes.fitzone.modelos.Cuota;
+import es.safareyes.fitzone.modelos.Monitor;
+import es.safareyes.fitzone.repositorios.ICuotaRepository;
+import es.safareyes.fitzone.repositorios.IActividadRepository;
+import es.safareyes.fitzone.dto.response.ActividadDisponibleSocioDto;
+
+import java.util.List;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class SocioService {
+
+    private final ISocioRepository socioRepository;
+    private final IPlanRepository planRepository;
+    private final SocioMapper socioMapper;
+    private final IReservaRepository reservaRepository;
+    private final ICuotaRepository cuotaRepository;
+    private final IActividadRepository actividadRepository;
+
+    @Transactional
+    public SocioResponseDto crearSocio(CrearSocioDto dto) {
+        if (socioRepository.existsByDni(dto.dni())) {
+            throw new ReglaNegocioException("Ya existe un socio registrado con el DNI: " + dto.dni());
+        }
+        if (socioRepository.existsByEmail(dto.email())) {
+            throw new ReglaNegocioException("Ya existe un socio registrado con el Email: " + dto.email());
+        }
+
+        Plan plan = planRepository.findById(dto.planId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Plan no encontrado con ID: " + dto.planId()));
+
+        Socio socio = socioMapper.toEntity(dto, plan);
+        return socioMapper.toDto(socioRepository.save(socio));
+    }
+    @Transactional(readOnly = true)
+    public Page<SocioResponseDto> obtenerTodosPaginados(Pageable pageable) {
+        return socioRepository.findAll(pageable).map(socioMapper::toDto);
+    }
+    @Transactional(readOnly = true)
+    public SocioResponseDto obtenerPorId(Integer id) {
+        Socio socio = socioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado con ID: " + id));
+        return socioMapper.toDto(socio);
+    }
+    @Transactional
+    public SocioResponseDto actualizarSocio(Integer id, ActualizarSocioDto dto) {
+        Socio socio = socioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado con ID: " + id));
+        Plan plan = planRepository.findById(dto.planId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Plan no encontrado con ID: " + dto.planId()));
+
+        socio.setNombre(dto.nombre());
+        socio.setApellidos(dto.apellidos());
+        socio.setEmail(dto.email());
+        socio.setTelefono(dto.telefono());
+        socio.setMatricula(dto.matricula());
+        socio.setPlan(plan);
+
+        return socioMapper.toDto(socioRepository.save(socio));
+    }
+    @Transactional
+    public SocioResponseDto cambiarEstado(Integer id, Boolean activo) {
+        Socio socio = socioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado con ID: " + id));
+        socio.setActivo(activo);
+        return socioMapper.toDto(socioRepository.save(socio));
+    }
+    @Transactional(readOnly = true)
+    public MiPerfilSocioDto obtenerMiPerfil(String nombreUsuario) {
+        Socio socio = socioRepository
+                .findByNombreUsuario(nombreUsuario)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No existe un socio asociado a este usuario"
+                        )
+                );
+        Plan plan = socio.getPlan();
+        return new MiPerfilSocioDto(
+                socio.getId(),
+                socio.getNombre(),
+                socio.getApellidos(),
+                nombreUsuario,
+                socio.getEmail(),
+                socio.getTelefono(),
+                socio.getFechaAlta(),
+                socio.getActivo(),
+                plan != null ? plan.getId() : null,
+                plan != null ? plan.getNombre() : null,
+                plan != null ? plan.getPrecioMesual() : null
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public ResumenSocioDto obtenerResumen(String nombreUsuario) {
+
+        // Buscar al socio
+        Socio socio = socioRepository.findByNombreUsuario(nombreUsuario)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No existe un socio asociado a este usuario"
+                        )
+                );
+
+        // Obtener fecha y mes actuales
+        LocalDateTime ahora = LocalDateTime.now();
+
+        YearMonth mesActual = YearMonth.now();
+
+        // Recuperar todas las reservas del socio
+        List<Reserva> reservas = reservaRepository
+                .findReservasBySocioId(socio.getId());
+
+        //  Filtrar las reservas activas
+        List<Reserva> reservasActivas = reservas.stream()
+                .filter(reserva -> Boolean.TRUE.equals(reserva.getEstado()))
+                .toList();
+
+        // Obtener reservas futuras
+        List<Reserva> futuras = reservasActivas.stream()
+
+                .filter(reserva ->
+                        reserva.getActividad() != null
+                )
+
+                .filter(reserva ->
+                        reserva.getActividad().getDia() != null
+                )
+
+                .filter(reserva ->
+                        !reserva.getActividad().getDia().isBefore(ahora)
+                )
+
+                .sorted(
+                        Comparator.comparing(
+                                reserva -> reserva.getActividad().getDia()
+                        )
+                )
+
+                .toList();
+
+
+        //  Contar las clases del mes actual
+        int clasesEsteMes = (int) reservasActivas.stream()
+
+                .filter(reserva ->
+                        reserva.getActividad() != null
+                )
+
+                .filter(reserva ->
+                        reserva.getActividad().getDia() != null
+                )
+
+                .filter(reserva ->
+                        YearMonth.from(reserva.getActividad().getDia())
+                                .equals(mesActual)
+                )
+
+                .count();
+
+
+        // Obtener las actividades recientes
+        List<ActividadResumenDto> recientes = reservasActivas.stream()
+
+                .filter(reserva ->
+                        reserva.getActividad() != null
+                )
+
+                .filter(reserva ->
+                        reserva.getActividad().getDia() != null
+                )
+
+                .filter(reserva ->
+                        reserva.getActividad().getDia().isBefore(ahora)
+                )
+
+                .sorted(
+                        Comparator.comparing(
+                                (Reserva reserva) ->
+                                        reserva.getActividad().getDia()
+                        ).reversed()
+                )
+
+                .limit(3)
+
+                .map(this::aActividadResumen)
+
+                .toList();
+
+
+        // Consultar cuota del mes actual
+        Optional<Cuota> cuota =
+                cuotaRepository.findFirstBySocioIdAndMesAndAnioOrderByIdDesc(
+                        socio.getId(),
+                        mesActual.getMonthValue(),
+                        mesActual.getYear()
+                );
+
+
+        // Comprobar estado de la cuota
+        String estadoCuota = cuota
+                .map(c ->
+                        esCuotaPagada(c.getEstado())
+                                ? "Al día"
+                                : "Pendiente"
+                )
+                .orElse("Sin cuota generada");
+
+
+        // Construir respuesta
+        return new ResumenSocioDto(
+
+                clasesEsteMes,
+
+                futuras.size(),
+
+                estadoCuota,
+
+                futuras.isEmpty()
+                        ? null
+                        : aActividadResumen(futuras.get(0)),
+
+                recientes
+
+        );
+
+    }
+
+    private ActividadResumenDto aActividadResumen(Reserva reserva) {
+        Actividad actividad = reserva.getActividad();
+        Monitor monitor = actividad.getMonitor();
+        String nombreMonitor = monitor == null ? null : monitor.getNombre()
+                + (monitor.getApellido() == null ? "" : " " + monitor.getApellido());
+        return new ActividadResumenDto(actividad.getNombre(), actividad.getDia(), actividad.getHora(),
+                actividad.getSala(), nombreMonitor);
+    }
+
+    private boolean esCuotaPagada(String estado) {
+        return "PAGADA".equalsIgnoreCase(estado) || "PAGADO".equalsIgnoreCase(estado);
+    }
+
+
+
+    @Transactional(readOnly = true)
+    public List<ReservaSocioDto> obtenerMisReservas(String nombreUsuario) {
+        Socio socio = socioRepository
+                .findByNombreUsuario(nombreUsuario)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No existe un socio asociado a este usuario"
+                        )
+                );
+
+        List<Reserva> reservas = reservaRepository
+                .findReservasBySocioId(socio.getId());
+        return reservas.stream().map(reserva -> {
+            Actividad actividad = reserva.getActividad();
+            Monitor monitor = actividad.getMonitor();
+            String nombreMonitor = null;
+
+            if (monitor != null) {
+                nombreMonitor = monitor.getNombre();
+                if (monitor.getApellido() != null) {
+                    nombreMonitor += " " + monitor.getApellido();
+                }
+            }
+            return new ReservaSocioDto(
+                    reserva.getId(),
+                    reserva.getEstado(),
+                    reserva.getFechaReserva(),
+                    actividad.getId(),
+                    actividad.getNombre(),
+                    actividad.getDia(),
+                    actividad.getHora(),
+                    actividad.getDuracion(),
+                    actividad.getSala(),
+                    nombreMonitor
+            );
+        }).collect(Collectors.toList());
+    }
+    @Transactional
+    public ReservaSocioDto reservarActividad(
+            String nombreUsuario,
+            Integer actividadId
+    ) {
+
+        // Buscar al socio autenticado
+        Socio socio = socioRepository.findByNombreUsuario(nombreUsuario)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No existe un socio asociado a este usuario."
+                        )
+                );
+
+        if (!Boolean.TRUE.equals(socio.getActivo())) {
+            throw new ReglaNegocioException(
+                    "Tu cuenta de socio no está activa."
+            );
+        }
+
+        // Buscar la actividad
+        Actividad actividad = actividadRepository.findById(actividadId)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No se ha encontrado la actividad."
+                        )
+                );
+
+        // Comprobar que no haya comenzado
+        if (actividad.getDia() == null ||
+                !actividad.getDia().isAfter(LocalDateTime.now())) {
+            throw new ReglaNegocioException(
+                    "No puedes reservar una actividad que ya ha comenzado."
+            );
+        }
+
+        // Evitar reservas duplicadas
+        if (reservaRepository.existsBySocio_IdAndActividad_IdAndEstadoTrue(
+                socio.getId(),
+                actividadId
+        )) {
+            throw new ReglaNegocioException(
+                    "Ya tienes una reserva activa para esta actividad."
+            );
+        }
+
+        // Comprobar aforo
+        long reservasConfirmadas =
+                reservaRepository.countByActividad_IdAndEstadoTrue(
+                        actividadId
+                );
+
+        if (reservasConfirmadas >= actividad.getAforoMaximo()) {
+            throw new ReglaNegocioException(
+                    "No quedan plazas disponibles para esta actividad."
+            );
+        }
+
+        // Crear reserva
+        Reserva reserva = new Reserva();
+
+        reserva.setFechaReserva(LocalDateTime.now());
+        reserva.setEstado(true);
+        reserva.setSocio(socio);
+        reserva.setActividad(actividad);
+
+        Reserva guardada = reservaRepository.save(reserva);
+
+        Monitor monitor = actividad.getMonitor();
+
+        String nombreMonitor = monitor == null
+                ? null
+                : monitor.getNombre() + " " + monitor.getApellido();
+
+        return new ReservaSocioDto(
+                guardada.getId(),
+                guardada.getEstado(),
+                guardada.getFechaReserva(),
+                actividad.getId(),
+                actividad.getNombre(),
+                actividad.getDia(),
+                actividad.getHora(),
+                actividad.getDuracion(),
+                actividad.getSala(),
+                nombreMonitor
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<ActividadDisponibleSocioDto> obtenerActividadesDisponibles() {
+        LocalDateTime ahora = LocalDateTime.now();
+        List<Actividad> actividades =
+                actividadRepository.findByDiaAfterOrderByDiaAsc(ahora);
+        return actividades.stream()
+                .map(actividad -> {
+
+                    long reservasConfirmadas =
+                            reservaRepository.countByActividad_IdAndEstadoTrue(
+                                    actividad.getId()
+                            );
+
+                    long plazasDisponibles =
+                            actividad.getAforoMaximo() - reservasConfirmadas;
+
+                    Monitor monitor = actividad.getMonitor();
+
+                    String nombreMonitor = monitor == null
+                            ? null
+                            : monitor.getNombre()
+                            + (monitor.getApellido() == null
+                            ? ""
+                            : " " + monitor.getApellido());
+
+                    return new ActividadDisponibleSocioDto(
+                            actividad.getId(),
+                            actividad.getNombre(),
+                            actividad.getDia(),
+                            actividad.getHora(),
+                            actividad.getDuracion(),
+                            actividad.getSala(),
+                            actividad.getAforoMaximo(),
+                            Math.max(0, plazasDisponibles),
+                            nombreMonitor
+                    );
+                })
+                .filter(actividad -> actividad.plazasDisponibles() > 0)
+                .toList();
+    }
+    @Transactional
+    public void cancelarReserva(String nombreUsuario, Integer reservaId) {
+
+        Socio socio = socioRepository.findByNombreUsuario(nombreUsuario)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No existe un socio asociado a este usuario."
+                        )
+                );
+
+        Reserva reserva = reservaRepository
+                .findByIdAndSocio_Id(reservaId, socio.getId())
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "No se ha encontrado esa reserva."
+                        )
+                );
+
+        if (!Boolean.TRUE.equals(reserva.getEstado())) {
+            throw new ReglaNegocioException(
+                    "Esta reserva ya está cancelada."
+            );
+        }
+
+        if (reserva.getActividad().getDia() == null ||
+                !reserva.getActividad().getDia().isAfter(LocalDateTime.now())) {
+            throw new ReglaNegocioException(
+                    "No puedes cancelar una actividad que ya ha comenzado."
+            );
+        }
+
+        reserva.setEstado(false);
+        reservaRepository.save(reserva);
+    }
+
+}
+
+==> src/main/java/es/safareyes/fitzone/servicios/RecepcionCuotaService.java <==
+package es.safareyes.fitzone.servicios;
+
+import es.safareyes.fitzone.dto.response.CuotaAdminDto;
+import es.safareyes.fitzone.dto.response.ResumenCuotasRecepcionDto;
+import es.safareyes.fitzone.modelos.Cuota;
+import es.safareyes.fitzone.modelos.Socio;
+import es.safareyes.fitzone.modelos.Plan;
+import es.safareyes.fitzone.repositorios.ICuotaRepository;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDateTime;
+
+@Service
+@RequiredArgsConstructor
+public class RecepcionCuotaService {
+
+    private final ICuotaRepository cuotaRepository;
+
+    @Transactional(readOnly = true)
+    public Page<CuotaAdminDto> listarCuotas(Pageable pageable) {
+
+        return cuotaRepository.listarCuotasAdmin(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public ResumenCuotasRecepcionDto obtenerResumen() {
+
+        return new ResumenCuotasRecepcionDto(
+                cuotaRepository.count(),
+                cuotaRepository.countByEstadoIgnoreCase("PAGADO"),
+                cuotaRepository.countByEstadoIgnoreCase("PENDIENTE"),
+                cuotaRepository.countByEstadoIgnoreCase("CANCELADO")
+        );
+    }
+
+    @Transactional
+    public CuotaAdminDto registrarPago(Integer id) {
+
+        Cuota cuota = cuotaRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "No se ha encontrado la cuota."
+                        )
+                );
+
+        String estado = cuota.getEstado().trim().toUpperCase();
+
+        if ("PAGADO".equals(estado)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Esta cuota ya está pagada."
+            );
+        }
+
+        if ("CANCELADO".equals(estado)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede cobrar una cuota cancelada."
+            );
+        }
+
+        if (!"PENDIENTE".equals(estado)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El estado de la cuota no permite registrar el cobro."
+            );
+        }
+
+        cuota.setEstado("PAGADO");
+        cuota.setFechaPago(LocalDateTime.now());
+
+        Cuota guardada = cuotaRepository.save(cuota);
+
+        return convertirDto(guardada);
+    }
+
+    private CuotaAdminDto convertirDto(Cuota cuota) {
+
+        Socio socio = cuota.getSocio();
+
+        Plan plan = socio != null ? socio.getPlan() : null;
+
+        return new CuotaAdminDto(
+                cuota.getId(),
+                cuota.getMes(),
+                cuota.getAnio(),
+                cuota.getImporte(),
+                cuota.getEstado(),
+                cuota.getFechaPago(),
+                socio != null ? socio.getId() : null,
+                socio != null ? socio.getNombre() : null,
+                socio != null ? socio.getApellidos() : null,
+                socio != null ? socio.getDni() : null,
+                plan != null ? plan.getNombre() : null
+        );
+    }
+}

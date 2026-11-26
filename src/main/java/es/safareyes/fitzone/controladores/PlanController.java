@@ -1,7 +1,7 @@
 package es.safareyes.fitzone.controladores;
 
 import es.safareyes.fitzone.conversores.PlanMapper;
-import es.safareyes.fitzone.dto.PlanResponseDto;
+import es.safareyes.fitzone.dto.response.PlanResponseDto;
 import es.safareyes.fitzone.repositorios.IPlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

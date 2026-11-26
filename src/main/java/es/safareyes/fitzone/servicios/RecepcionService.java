@@ -1,7 +1,7 @@
 package es.safareyes.fitzone.servicios;
 
 import es.safareyes.fitzone.conversores.SocioMapper;
-import es.safareyes.fitzone.dto.RecepcionResumenDto;
+import es.safareyes.fitzone.dto.response.RecepcionResumenDto;
 import es.safareyes.fitzone.repositorios.ISocioRepository;
 import es.safareyes.fitzone.repositorios.ICuotaRepository;
 import es.safareyes.fitzone.repositorios.IActividadRepository;

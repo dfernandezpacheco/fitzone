@@ -1,6 +1,9 @@
 package es.safareyes.fitzone.controladores;
 
-import es.safareyes.fitzone.dto.*;
+import es.safareyes.fitzone.dto.request.ActualizarSocioDto;
+import es.safareyes.fitzone.dto.request.CrearSocioDto;
+import es.safareyes.fitzone.dto.response.*;
+import es.safareyes.fitzone.servicios.CuotaAdminService;
 import es.safareyes.fitzone.servicios.SocioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import es.safareyes.fitzone.dto.ReservaSocioDto;
+
 import java.util.List;
 
 @RestController
@@ -21,6 +24,7 @@ import java.util.List;
 public class SocioController {
 
     private final SocioService socioService;
+    private final CuotaAdminService cuotaAdminService;
 
     // Endpoints 1: POST
     @PostMapping
@@ -100,5 +104,13 @@ public class SocioController {
         return ResponseEntity.ok(
                 socioService.obtenerActividadesDisponibles()
         );
+    }
+
+    // Endpoint 9: GET Historial paginado de cuotas del socio
+    @GetMapping("/{id}/cuotas")
+    public ResponseEntity<Page<CuotaAdminDto>> listarCuotasSocio(
+            @PathVariable Integer id,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(cuotaAdminService.listarCuotasPorSocio(id, pageable));
     }
 }

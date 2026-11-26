@@ -1,6 +1,6 @@
 package es.safareyes.fitzone.conversores;
 
-import es.safareyes.fitzone.dto.PlanResponseDto;
+import es.safareyes.fitzone.dto.response.PlanResponseDto;
 import es.safareyes.fitzone.modelos.Plan;
 import org.springframework.stereotype.Component;
 

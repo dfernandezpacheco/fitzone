@@ -1,8 +1,8 @@
 package es.safareyes.fitzone.controladores;
 
-import es.safareyes.fitzone.dto.IniciarSesionDto;
-import es.safareyes.fitzone.dto.SesionIniciadaDto;
-import es.safareyes.fitzone.dto.RegistroDto;
+import es.safareyes.fitzone.dto.request.IniciarSesionDto;
+import es.safareyes.fitzone.dto.response.SesionIniciadaDto;
+import es.safareyes.fitzone.dto.request.RegistroDto;
 import es.safareyes.fitzone.servicios.AutenticacionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

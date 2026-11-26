@@ -1,7 +1,7 @@
 package es.safareyes.fitzone.controladores;
 
-import es.safareyes.fitzone.dto.GuardarPlanDto;
-import es.safareyes.fitzone.dto.PlanResponseDto;
+import es.safareyes.fitzone.dto.request.GuardarPlanDto;
+import es.safareyes.fitzone.dto.response.PlanResponseDto;
 import es.safareyes.fitzone.servicios.PlanAdminService;
 
 import lombok.RequiredArgsConstructor;

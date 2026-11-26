@@ -2,7 +2,6 @@ package es.safareyes.fitzone.repositorios;
 
 
 import es.safareyes.fitzone.modelos.Cuota;
-import es.safareyes.fitzone.modelos.Socio;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,9 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import es.safareyes.fitzone.dto.CuotaAdminDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import es.safareyes.fitzone.dto.response.CuotaAdminDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -67,4 +64,20 @@ public interface ICuotaRepository extends JpaRepository<Cuota, Integer> {
     long countByAnio(Integer anio);
 
     long countByAnioAndEstadoIgnoreCase(Integer anio, String estado);
+
+    // Comprueba si el socio tiene pagada la cuota del mes/año (para el torno RN-05)
+    @Query("SELECT COUNT(c) > 0 FROM Cuota c WHERE c.socio.id = :socioId " +
+            "AND c.mes = :mes AND c.anio = :anio AND UPPER(c.estado) IN ('PAGADO', 'PAGADA')")
+    boolean tieneCuotaPagada(@Param("socioId") Integer socioId, @Param("mes") Integer mes, @Param("anio") Integer anio);
+
+    // Evita generar cuotas duplicadas (RN-03)
+    boolean existsBySocioIdAndMesAndAnio(Integer socioId, Integer mes, Integer anio);
+
+    // Endpoint 9: Historial paginado de cuotas de un socio
+    Page<Cuota> findBySocioIdOrderByAnioDescMesDesc(Integer socioId, Pageable pageable);
+
+    // Endpoint 10: Morosos de un mes (Q2 JPQL con JOIN)
+    @Query("SELECT c FROM Cuota c JOIN FETCH c.socio s LEFT JOIN FETCH s.plan " +
+            "WHERE c.mes = :mes AND c.anio = :anio AND UPPER(c.estado) = 'PENDIENTE'")
+    List<Cuota> findPendientesByMesAndAnio(@Param("mes") Integer mes, @Param("anio") Integer anio);
 }

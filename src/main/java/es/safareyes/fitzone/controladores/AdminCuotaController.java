@@ -1,6 +1,6 @@
 package es.safareyes.fitzone.controladores;
 
-import es.safareyes.fitzone.dto.CuotaAdminDto;
+import es.safareyes.fitzone.dto.response.CuotaAdminDto;
 import es.safareyes.fitzone.servicios.CuotaAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

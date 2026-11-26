@@ -37,4 +37,20 @@ public class ApiExceptionHandler {
         problema.setTitle("Conflicto de datos");
         return problema;
     }
+
+    @ExceptionHandler(ReglaNegocioException.class)
+    ProblemDetail reglaNegocio(ReglaNegocioException exception) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNPROCESSABLE_ENTITY, exception.getMessage());
+        problema.setTitle("Regla de negocio incumplida");
+        return problema;
+    }
+
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    ProblemDetail noEncontrado(RecursoNoEncontradoException exception) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND, exception.getMessage());
+        problema.setTitle("Recurso no encontrado");
+        return problema;
+    }
 }

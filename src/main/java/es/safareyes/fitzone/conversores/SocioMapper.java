@@ -1,7 +1,7 @@
 package es.safareyes.fitzone.conversores;
 
-import es.safareyes.fitzone.dto.CrearSocioDto;
-import es.safareyes.fitzone.dto.SocioResponseDto;
+import es.safareyes.fitzone.dto.request.CrearSocioDto;
+import es.safareyes.fitzone.dto.response.SocioResponseDto;
 import es.safareyes.fitzone.modelos.Plan;
 import es.safareyes.fitzone.modelos.Socio;
 import lombok.RequiredArgsConstructor;

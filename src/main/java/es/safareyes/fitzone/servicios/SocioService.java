@@ -1,9 +1,9 @@
 package es.safareyes.fitzone.servicios;
 
 import es.safareyes.fitzone.conversores.SocioMapper;
-import es.safareyes.fitzone.dto.ActualizarSocioDto;
-import es.safareyes.fitzone.dto.CrearSocioDto;
-import es.safareyes.fitzone.dto.SocioResponseDto;
+import es.safareyes.fitzone.dto.request.ActualizarSocioDto;
+import es.safareyes.fitzone.dto.request.CrearSocioDto;
+import es.safareyes.fitzone.dto.response.SocioResponseDto;
 import es.safareyes.fitzone.exception.RecursoNoEncontradoException;
 import es.safareyes.fitzone.exception.ReglaNegocioException;
 import es.safareyes.fitzone.modelos.Plan;
@@ -16,17 +16,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import es.safareyes.fitzone.dto.MiPerfilSocioDto;
-import es.safareyes.fitzone.dto.ActividadResumenDto;
-import es.safareyes.fitzone.dto.ResumenSocioDto;
-import es.safareyes.fitzone.dto.ReservaSocioDto;
+import es.safareyes.fitzone.dto.response.MiPerfilSocioDto;
+import es.safareyes.fitzone.dto.response.ActividadResumenDto;
+import es.safareyes.fitzone.dto.response.ResumenSocioDto;
+import es.safareyes.fitzone.dto.response.ReservaSocioDto;
 import es.safareyes.fitzone.modelos.Reserva;
 import es.safareyes.fitzone.modelos.Actividad;
 import es.safareyes.fitzone.modelos.Cuota;
 import es.safareyes.fitzone.modelos.Monitor;
 import es.safareyes.fitzone.repositorios.ICuotaRepository;
 import es.safareyes.fitzone.repositorios.IActividadRepository;
-import es.safareyes.fitzone.dto.ActividadDisponibleSocioDto;
+import es.safareyes.fitzone.dto.response.ActividadDisponibleSocioDto;
 
 import java.util.List;
 import java.time.LocalDateTime;

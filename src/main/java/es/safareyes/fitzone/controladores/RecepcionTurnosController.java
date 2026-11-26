@@ -1,6 +1,10 @@
 package es.safareyes.fitzone.controladores;
 
-import es.safareyes.fitzone.dto.*;
+import es.safareyes.fitzone.dto.request.ActualizarAsistenciaDto;
+import es.safareyes.fitzone.dto.request.CrearTurnoRecepcionDto;
+import es.safareyes.fitzone.dto.response.MonitorRecepcionDto;
+import es.safareyes.fitzone.dto.response.ReservaRecepcionDto;
+import es.safareyes.fitzone.dto.response.TurnoRecepcionDto;
 import es.safareyes.fitzone.servicios.RecepcionTurnosService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -66,13 +70,12 @@ public class RecepcionTurnosController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/turnos/{actividadId}/reservas/{reservaId}/cancelar")
+    @PutMapping("/{actividadId}/reservas/{reservaId}/cancelar")
     public ResponseEntity<Void> cancelarReserva(
             @PathVariable Integer actividadId,
             @PathVariable Integer reservaId) {
 
         recepcionTurnosService.cancelarReserva(actividadId, reservaId);
-
         return ResponseEntity.noContent().build();
     }
 }

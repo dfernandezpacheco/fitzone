@@ -1,6 +1,6 @@
 package es.safareyes.fitzone.controladores;
 
-import es.safareyes.fitzone.dto.RecepcionResumenDto;
+import es.safareyes.fitzone.dto.response.RecepcionResumenDto;
 import es.safareyes.fitzone.servicios.RecepcionService;
 
 import lombok.RequiredArgsConstructor;

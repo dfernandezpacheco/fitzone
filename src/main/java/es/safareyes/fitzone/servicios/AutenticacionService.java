@@ -1,8 +1,8 @@
 package es.safareyes.fitzone.servicios;
 
-import es.safareyes.fitzone.dto.IniciarSesionDto;
-import es.safareyes.fitzone.dto.RegistroDto;
-import es.safareyes.fitzone.dto.SesionIniciadaDto;
+import es.safareyes.fitzone.dto.request.IniciarSesionDto;
+import es.safareyes.fitzone.dto.request.RegistroDto;
+import es.safareyes.fitzone.dto.response.SesionIniciadaDto;
 import es.safareyes.fitzone.modelos.Plan;
 import es.safareyes.fitzone.modelos.Socio;
 import es.safareyes.fitzone.modelos.Usuario;

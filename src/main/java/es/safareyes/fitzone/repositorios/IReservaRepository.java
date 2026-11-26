@@ -1,6 +1,7 @@
 package es.safareyes.fitzone.repositorios;
 
 
+import es.safareyes.fitzone.dto.response.ReservaListadoRecepcionDto;
 import es.safareyes.fitzone.modelos.Actividad;
 import es.safareyes.fitzone.modelos.Reserva;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -65,4 +66,21 @@ public interface IReservaRepository extends JpaRepository<Reserva, Integer> {
             Integer reservaId,
             Integer actividadId
     );
+
+    @Query("""
+    SELECT r.id, a.id, a.nombre, a.dia, a.hora,
+        CONCAT(s.nombre, ' ', s.apellidos), s.dni,
+        CONCAT(m.nombre, ' ', m.apellido),
+        r.estado, r.asistio
+    FROM Reserva r
+    JOIN r.actividad a
+    JOIN r.socio s
+    LEFT JOIN a.monitor m
+    WHERE a.dia >= :inicio
+      AND a.dia < :fin
+    ORDER BY a.dia ASC, a.hora ASC, s.apellidos ASC
+    """)
+    List<ReservaListadoRecepcionDto> listarReservasPorRango(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin);
 }

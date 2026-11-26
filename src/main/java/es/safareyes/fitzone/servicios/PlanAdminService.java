@@ -1,8 +1,8 @@
 package es.safareyes.fitzone.servicios;
 
 import es.safareyes.fitzone.conversores.PlanMapper;
-import es.safareyes.fitzone.dto.GuardarPlanDto;
-import es.safareyes.fitzone.dto.PlanResponseDto;
+import es.safareyes.fitzone.dto.request.GuardarPlanDto;
+import es.safareyes.fitzone.dto.response.PlanResponseDto;
 import es.safareyes.fitzone.exception.RecursoNoEncontradoException;
 import es.safareyes.fitzone.exception.ReglaNegocioException;
 import es.safareyes.fitzone.modelos.Plan;

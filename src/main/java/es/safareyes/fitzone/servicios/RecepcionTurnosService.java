@@ -1,8 +1,8 @@
 package es.safareyes.fitzone.servicios;
 
-import es.safareyes.fitzone.dto.CrearTurnoRecepcionDto;
-import es.safareyes.fitzone.dto.MonitorRecepcionDto;
-import es.safareyes.fitzone.dto.TurnoRecepcionDto;
+import es.safareyes.fitzone.dto.request.CrearTurnoRecepcionDto;
+import es.safareyes.fitzone.dto.response.MonitorRecepcionDto;
+import es.safareyes.fitzone.dto.response.TurnoRecepcionDto;
 import es.safareyes.fitzone.exception.RecursoNoEncontradoException;
 import es.safareyes.fitzone.exception.ReglaNegocioException;
 import es.safareyes.fitzone.modelos.Actividad;
@@ -11,7 +11,7 @@ import es.safareyes.fitzone.modelos.Reserva;
 import es.safareyes.fitzone.repositorios.IActividadRepository;
 import es.safareyes.fitzone.repositorios.IMonitorRepository;
 import lombok.RequiredArgsConstructor;
-import es.safareyes.fitzone.dto.ReservaRecepcionDto;
+import es.safareyes.fitzone.dto.response.ReservaRecepcionDto;
 import es.safareyes.fitzone.repositorios.IReservaRepository;
 import es.safareyes.fitzone.modelos.Socio;
 import java.util.List;
@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -202,6 +201,7 @@ public class RecepcionTurnosService {
                 .toList();
     }
 
+
     @Transactional
     public void actualizarAsistencia(
             Integer actividadId,
@@ -240,16 +240,16 @@ public class RecepcionTurnosService {
 
         Reserva reserva = reservaRepository
                 .findByIdAndActividad_Id(reservaId, actividadId)
-                .orElseThrow(() -> new RuntimeException(
-                        "No se ha encontrado la reserva para esta actividad"
-                ));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se ha encontrado la reserva para esta actividad."));
 
         if (!Boolean.TRUE.equals(reserva.getEstado())) {
-            throw new RuntimeException("La reserva ya está cancelada");
+            throw new ReglaNegocioException("La reserva ya está cancelada.");
         }
 
         reserva.setEstado(false);
-
         reservaRepository.save(reserva);
     }
+
+
 }
