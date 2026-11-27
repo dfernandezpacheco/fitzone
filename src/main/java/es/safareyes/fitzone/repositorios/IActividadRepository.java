@@ -23,7 +23,7 @@ public interface IActividadRepository extends JpaRepository<Actividad, Integer> 
     );
 
     @Query("""
-    SELECT new es.safareyes.fitzone.dto.TurnoRecepcionDto(a.id,a.nombre,a.dia,a.hora,a.duracion,a.sala,a.aforoMaximo,m.id, CONCAT(m.nombre, ' ', m.apellido),
+    SELECT new es.safareyes.fitzone.dto.response.TurnoRecepcionDto(a.id,a.nombre,a.dia,a.hora,a.duracion,a.sala,a.aforoMaximo,m.id, CONCAT(m.nombre, ' ', m.apellido),
         (            SELECT COUNT(r)
             FROM Reserva r
             WHERE r.actividad = a

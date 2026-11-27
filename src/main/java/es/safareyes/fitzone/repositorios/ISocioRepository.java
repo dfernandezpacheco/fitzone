@@ -42,7 +42,7 @@ public interface ISocioRepository extends JpaRepository<Socio, Integer>, JpaSpec
     long countByActivoFalse();
 
     @Query("""
-    SELECT new es.safareyes.fitzone.dto.DistribucionPlanDto(
+    SELECT new es.safareyes.fitzone.dto.response.DistribucionPlanDto(
         COALESCE(p.nombre, 'Sin plan'),
         COUNT(s.id)
     )

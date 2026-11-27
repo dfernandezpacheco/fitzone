@@ -49,7 +49,7 @@ public interface ICuotaRepository extends JpaRepository<Cuota, Integer> {
 
     @Query(
             value = """
-        SELECT new es.safareyes.fitzone.dto.CuotaAdminDto(
+        SELECT new es.safareyes.fitzone.dto.response.CuotaAdminDto(
             c.id,c.mes,c.anio,c.importe,c.estado,c.fechaPago,s.id,s.nombre,s.apellidos,s.dni,p.nombre
         )
         FROM Cuota c
